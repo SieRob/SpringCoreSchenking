@@ -130,20 +130,40 @@ public class MensRepository {
     }
 
     public List<SchenkStatistiekPerMens> findSchenkStatistiekPerMens(){
+
+        //SQL zoals in cursus
+        /**/
         var sql = """
-                SELECT mensen.id, mensen.naam, count(schenkingen.vanMensId) AS aantal, sum(schenkingen.bedrag) AS totaal
+                select mensen.id, naam, count(schenkingen.*) as aantal, sum(bedrag) as totaal
+                from mensen LEFT outer join schenkingen
+                on mensen.id = schenkingen.vanMensId
+                group by mensen.id
+                order by mensen.id
+                """;
+        /**/
+
+        //SQL fix -> COUNT(*) of COUNT(schenkingen.id)
+        /**/
+        sql = """
+                SELECT mensen.id, mensen.naam, COUNT(*) AS aantal, SUM(schenkingen.bedrag) AS totaal
                 FROM mensen LEFT OUTER JOIN schenkingen
                 ON mensen.id = schenkingen.vanMensId
                 GROUP BY mensen.id
                 ORDER BY mensen.id
                 """;
-        /*var sql = """
-                select mensen.id, naam, count(schenkingen.*) as aantal, sum(bedrag) as totaal
-                from mensen left outer join schenkingen
+
+        /**/
+
+        //Test werkt -> RIGHT JOIN
+        /**/
+        sql = """
+                select mensen.id, naam, count(*) as aantal, sum(bedrag) as totaal
+                from mensen RIGHT join schenkingen
                 on mensen.id = schenkingen.vanMensId
                 group by mensen.id
                 order by mensen.id
-                """;*/
+                """;
+         /**/
 
         RowMapper<SchenkStatistiekPerMens> mapper = (result, rowNum)-> new SchenkStatistiekPerMens(
                 result.getLong("id"), result.getString("naam"), result.getInt("aantal"), result.getBigDecimal("totaal"));
